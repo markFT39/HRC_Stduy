@@ -1,5 +1,5 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables
-
+// ignore_for_file: prefer_const_constructors, avoid_print,
+// ignore_for_file: prefer_const_literals_to_create_immutables, overridden_fields
 import 'package:flutter/material.dart';
 
 void main(List<String> args) {
@@ -11,14 +11,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'App Bar',
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-      ),
-      home: MyHomePage(),
-    );
+    return TestPage();
   }
+}
+
+// ignore: must_be_immutable
+class TestPage extends MaterialApp {
+  TestPage({Key? key}) : super(key: key);
+
+  @override
+  var title = "App bar";
+  @override
+  var theme = ThemeData(
+    primarySwatch: Colors.blueGrey,
+  );
+  @override
+  var home = MyHomePage();
 }
 
 class MyHomePage extends StatelessWidget {
@@ -78,7 +86,11 @@ class MyHomePage extends StatelessWidget {
               onTap: () {
                 print("heelos");
               },
-              trailing: Icon(Icons.add),
+              trailing: IconButton(
+                iconSize: 20.0,
+                onPressed: () {},
+                icon: Icon(Icons.add),
+              ),
             ),
             ListTile(
               leading: Icon(
