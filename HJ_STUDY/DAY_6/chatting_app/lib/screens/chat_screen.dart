@@ -1,7 +1,10 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:chatting_app/chatting/chat/message.dart';
+import 'package:chatting_app/chatting/chat/new_message.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -36,22 +39,27 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Chat screen'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _authentication.signOut();
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.exit_to_app_sharp),
-            color: Colors.white,
+        appBar: AppBar(
+          title: Text('Chat screen'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                _authentication.signOut();
+              },
+              icon: Icon(Icons.exit_to_app_sharp),
+              color: Colors.white,
+            ),
+          ],
+        ),
+        body: Container(
+          child: Column(
+            children: [
+              Expanded(
+                child: messages(),
+              ),
+              NewMessage(),
+            ],
           ),
-        ],
-      ),
-      body: Center(
-        child: Text('Chat screen'),
-      ),
-    );
+        ));
   }
 }
