@@ -1,0 +1,39 @@
+ {
+  "project_info": {
+    "project_number": "1082976278555",
+    "project_id": "chata-app-f8e98",
+    "storage_bucket": "chata-app-f8e98.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082976278555:android:4fda7dccd252b2eccf00be",
+        "android_client_info": {
+          "package_name": "com.example.yummy_chat_lecture100"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1082976278555-m1u7gdj4sl60iuvu3msfag54ums28hk9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCS9QPT8RiyUkhQcpc-Od-TaFaLoDsZOME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1082976278555-m1u7gdj4sl60iuvu3msfag54ums28hk9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
