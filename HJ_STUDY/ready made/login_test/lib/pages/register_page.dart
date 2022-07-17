@@ -1,4 +1,6 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
+
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,68 +21,112 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confrimpasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _ageController = TextEditingController();
+  final _confrimPasswordController = TextEditingController();
+  final _userNameController = TextEditingController();
+  final _userHeightController = TextEditingController();
+  final _userWeightController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confrimpasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _ageController.dispose();
+    _confrimPasswordController.dispose();
+    _userNameController.dispose();
+    _userHeightController.dispose();
+    _userWeightController.dispose();
     super.dispose();
   }
 
   Future signUp() async {
-    if (_emailController.text.trim().contains('@handong')) {
-      if (passwordConfirmed()) {
-        final newUser =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-
-        addUserDetails(
-          _firstNameController.text.trim(),
-          _lastNameController.text.trim(),
-          _emailController.text.trim(),
-          int.parse(_ageController.text.trim()),
-        );
-
-        if (FirebaseAuth.instance.currentUser!.emailVerified) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return HomePage();
-              },
-            ),
+    if (_emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confrimPasswordController.text.isNotEmpty &&
+        _userNameController.text.isNotEmpty &&
+        _userHeightController.text.isNotEmpty &&
+        _userWeightController.text.isNotEmpty) {
+      if (_emailController.text.trim().contains('@handong')) {
+        if (passwordConfirmed()) {
+          final newUser =
+              await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
           );
+
+          addUserDetails(
+            _userNameController.text.trim(),
+            _emailController.text.trim(),
+            double.parse(_userHeightController.text.trim()),
+            double.parse(_userWeightController.text.trim()),
+          );
+
+          if (FirebaseAuth.instance.currentUser!.emailVerified) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return HomePage();
+                },
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return EmailVerify();
+                },
+              ),
+            );
+          }
+
+          //  data set 방식 함수 호출
+          // addUserDetails(
+          //   newUser,
+          //   _userNameController.text.trim(),
+          //   _userHeightController.text.trim(),
+          //   _emailController.text.trim(),
+          //   int.parse(_userWeightController.text.trim()),
+          // );
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return EmailVerify();
-              },
-            ),
+          //  password alert
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                backgroundColor: Colors.white,
+                child: Container(
+                    height: 100,
+                    width: 100,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          height: 30,
+                          color: Colors.deepPurpleAccent,
+                          child: Center(
+                            child: Text(
+                              '경고',
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 25),
+                        Center(
+                          child: Text(
+                            '비밀번호를 다시 확인해 주십시오.',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+              );
+            },
           );
         }
-
-        //  data set 방식 함수 호출
-        // addUserDetails(
-        //   newUser,
-        //   _firstNameController.text.trim(),
-        //   _lastNameController.text.trim(),
-        //   _emailController.text.trim(),
-        //   int.parse(_ageController.text.trim()),
-        // );
       } else {
-        //  password alert
+        // handong email form alert
         showDialog(
           context: context,
           builder: (context) {
@@ -101,10 +147,10 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 25),
+                      SizedBox(height: 10),
                       Center(
                         child: Text(
-                          '비밀번호를 다시 확인해 주십시오.',
+                          '올바른 이메일 형식이 아닙니다. \n "handong" 이메일이 필요합니다.',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -118,7 +164,6 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } else {
-      // handong email form alert
       showDialog(
         context: context,
         builder: (context) {
@@ -139,10 +184,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 25),
                     Center(
                       child: Text(
-                        '올바른 이메일 형식이 아닙니다. \n "handong" 이메일이 필요합니다.',
+                        '모든 정보를 기입해주세요.',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -158,12 +203,12 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future addUserDetails(
-      String firstName, String lastName, String email, int age) async {
+      String username, String email, double height, double weight) async {
     await FirebaseFirestore.instance.collection('users').add({
-      'first name': firstName,
-      'last name': lastName,
+      'user name': username,
       'email': email,
-      'age': age,
+      'height': height,
+      'weight': weight,
     });
   }
 
@@ -183,7 +228,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool passwordConfirmed() {
     if (_passwordController.text.trim() ==
-        _confrimpasswordController.text.trim()) {
+        _confrimPasswordController.text.trim()) {
       return true;
     } else {
       return false;
@@ -193,216 +238,421 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Color.fromARGB(255, 35, 25, 60),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Hello There!',
-                    style: GoogleFonts.bebasNeue(
-                      fontSize: 52,
-                    )),
-                SizedBox(height: 10),
-                Text(
-                  'Register below with your details!',
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 50),
-
-                //  email textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Email',
-                      fillColor: Colors.grey[200],
-                      filled: true,
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: 20),
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.15,
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage('images/Logo1.png'),
+                          fit: BoxFit.fitWidth),
                     ),
                   ),
-                ),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 30),
 
-                //  password textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    obscureText: true,
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
+                  //  profile section
+                  Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          height: 260,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                            color: Color.fromARGB(255, 46, 36, 80),
+                          ),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
+
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Center(
+                          child: Text(
+                            'User profile',
+                            style: TextStyle(
+                              color: Color.fromRGBO(
+                                  186, 104, 186, 1), //Colors.white,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                      hintText: 'Password',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
+
+                      Padding(
+                        padding: const EdgeInsets.only(top: 50.0),
+                        child: Center(
+                          child: Container(
+                            height: 120,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey[200],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      //  User name textField
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(100, 180, 100, 0),
+                        child: TextField(
+                          controller: _userNameController,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.person),
+                            suffixIcon: GestureDetector(
+                              child: Icon(
+                                Icons.cancel,
+                                color: Color.fromRGBO(129, 97, 208, 0.75),
+                              ),
+                              onTap: () => _userNameController.clear(),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.deepPurpleAccent),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            hintText: 'User Name',
+                            fillColor: Colors.grey[200],
+                            filled: true,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 25),
 
-                //  confirm password textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    obscureText: true,
-                    controller: _confrimpasswordController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
+                  //  ID/PW section
+                  Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          height: 285,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                            color: Color.fromARGB(255, 46, 36, 80),
+                          ),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Center(
+                          child: Text(
+                            'ID/PW',
+                            style: TextStyle(
+                              color: Color.fromRGBO(
+                                  186, 104, 186, 1), //Colors.white,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
                       ),
-                      hintText: 'Confirm Password',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 60, 0, 10),
+                        child: Column(
+                          children: [
+                            //  email textField
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.email),
+                                  suffixIcon: GestureDetector(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Color.fromRGBO(129, 97, 208, 0.75),
+                                    ),
+                                    onTap: () => _emailController.clear(),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.deepPurpleAccent),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: 'Email',
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: 10),
+
+                            //  password textField
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: TextField(
+                                obscureText: true,
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.lock),
+                                  suffixIcon: GestureDetector(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Color.fromRGBO(129, 97, 208, 0.75),
+                                    ),
+                                    onTap: () => _passwordController.clear(),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.deepPurpleAccent),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: 'Password',
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: 10),
+
+                            //  confirm password textField
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: TextField(
+                                obscureText: true,
+                                controller: _confrimPasswordController,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.lock),
+                                  suffixIcon: GestureDetector(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Color.fromRGBO(129, 97, 208, 0.75),
+                                    ),
+                                    onTap: () =>
+                                        _confrimPasswordController.clear(),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.deepPurpleAccent),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: 'Confirm Password',
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                ),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 25),
 
-                //  User name textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
+                  //  User's body data section
+                  Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          height: 215,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                            color: Color.fromARGB(255, 46, 36, 80),
+                          ),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Center(
+                          child: Text(
+                            'Body info',
+                            style: TextStyle(
+                              color: Color.fromRGBO(
+                                  186, 104, 186, 1), //Colors.white,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                      hintText: 'User Name',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 60, 0, 10),
+                        child: Column(
+                          children: [
+                            //  height textField
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: TextField(
+                                controller: _userHeightController,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.height),
+                                  suffixIcon: GestureDetector(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Color.fromRGBO(129, 97, 208, 0.75),
+                                    ),
+                                    onTap: () => _userHeightController.clear(),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.deepPurpleAccent),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: 'Your height (cm)',
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: 10),
+
+                            //  weight textField
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: TextField(
+                                controller: _userWeightController,
+                                decoration: InputDecoration(
+                                  prefixIcon:
+                                      Icon(Icons.monitor_weight_outlined),
+                                  suffixIcon: GestureDetector(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Color.fromRGBO(129, 97, 208, 0.75),
+                                    ),
+                                    onTap: () => _userWeightController.clear(),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.deepPurpleAccent),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: 'Your weight (kg)',
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                ),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 25),
 
-                //  height textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Your height',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 10),
-
-                //  weight textField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _ageController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Your weight',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 10),
-
-                //  Sign in button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: GestureDetector(
-                    onTap: signUp,
-                    child: Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurpleAccent,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Sign up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                  //  Sign up button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    child: GestureDetector(
+                      onTap: signUp,
+                      child: Container(
+                        width: (MediaQuery.of(context).size.width * 0.6),
+                        height: 45,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(15),
+                          ),
+                          gradient: LinearGradient(
+                              begin: Alignment.bottomRight,
+                              end: Alignment.topLeft,
+                              colors: [
+                                Color.fromRGBO(129, 97, 208, 0.75),
+                                Color.fromRGBO(186, 104, 186, 1)
+                              ]),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Sign up',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 20),
 
-                //  not a member? register now
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'I am a member!?',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: widget.showLoginPage,
-                      child: Text(
-                        ' Login now',
+                  //  not a member? register now
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'I am a member!?',
                         style: TextStyle(
-                          color: Colors.blue,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white.withOpacity(0.5),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      GestureDetector(
+                        onTap: widget.showLoginPage,
+                        child: Text(
+                          ' Login now',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 158, 232, 249),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 30),
+                ],
+              ),
             ),
           ),
         ),

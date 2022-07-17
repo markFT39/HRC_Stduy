@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     await FirebaseFirestore.instance
         .collection('users')
         //  데이터 정렬!!
-        .orderBy('age', descending: true)
+        .orderBy('userName', descending: true)
         .get()
         .then(
           (snapshot) => snapshot.docs.forEach(
@@ -34,6 +34,14 @@ class _HomePageState extends State<HomePage> {
             },
           ),
         );
+  }
+
+  Future<void> signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   @override
@@ -46,21 +54,22 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(fontSize: 16),
           ),
         ),
-        // actions: [
-        //   GestureDetector(
-        //     onTap: () {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (context) {
-        //             return AuthPage();
-        //           },
-        //         ),
-        //       );
-        //     },
-        //     child: Icon(Icons.logout),
-        //   )
-        // ],
+        actions: [
+          GestureDetector(
+            onTap: () {
+              signOut();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return AuthPage();
+                  },
+                ),
+              );
+            },
+            child: Icon(Icons.logout),
+          )
+        ],
       ),
       body: Center(
         child: Column(
